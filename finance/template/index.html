@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <style>
+        .status { margin: 10px 0; padding: 10px; }
+        .connected { background: #dff0d8; }
+        .disconnected { background: #f2dede; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket Test</h2>
+    <div id="connection-status" class="status"></div>
+    <div id="messages"></div>
+    <script>
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0OTE1ODIxLCJpYXQiOjE3MzQ5MTIyMjEsImp0aSI6IjUxZTdiNzkxNDg3NjQ1MTI5MWVlYjg2Njg5ZDYyNDg3IiwidXNlcl9pZCI6Niwicm9sZSI6Ik1BTkFHRVIiLCJ1c2VybmFtZSI6Im1hbmFnZXI1In0.6LF-rviux61rQky779i4TrN21qsLQojCqVmSs4YJPB0';
+        const statusDiv = document.getElementById('connection-status');
+        
+        function connect() {
+            const socket = new WebSocket(`ws://127.0.0.1:8000/ws/notifications/?token=${token}`);
+            
+            socket.onopen = function(e) {
+                console.log("Connected to WebSocket");
+                statusDiv.textContent = 'Connected to WebSocket';
+                statusDiv.className = 'status connected';
+            };
+            
+            socket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('messages').innerHTML += `
+                    <p>${data.message}</p>
+                `;
+            };
+            
+            socket.onclose = function(e) {
+                console.log("Disconnected from WebSocket");
+                statusDiv.textContent = 'Disconnected from WebSocket. Retrying in 5s...';
+                statusDiv.className = 'status disconnected';
+                setTimeout(connect, 5000);
+            };
+            
+            socket.onerror = function(err) {
+                console.error('Socket encountered error: ', err);
+                socket.close();
+            };
+        }
+        
+        connect();
+    </script>
+</body>
+</html>
