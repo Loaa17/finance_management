@@ -22,8 +22,11 @@ coverage==7.4.1
 drf-yasg==1.21.7
 
 # Production
-gunicorn==21.2.0
-whitenoise==6.6.0
-
-# Payment Integration
-stripe==7.11.0
+django
+djangorestframework
+django-cors-headers
+channels
+channels-redis
+daphne
+cloudinary
+django-cloudinary-storage
