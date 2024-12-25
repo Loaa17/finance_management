@@ -3,11 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import User, BonusRequest,Notification
+from .models import User, BonusRequest
 from .serializers import UserSerializer, BonusRequestSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from django.views.generic import TemplateView
-from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 
@@ -17,6 +15,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class BonusRequestViewSet(viewsets.ModelViewSet):
+
     parser_classes = (MultiPartParser, FormParser, JSONParser)
     queryset = BonusRequest.objects.all()
     serializer_class = BonusRequestSerializer
@@ -37,17 +36,7 @@ class BonusRequestViewSet(viewsets.ModelViewSet):
             created_by=self.request.user,
             attachment=self.request.FILES.get('attachment')
         )
-        # Send notification
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"user_{bonus_request.assigned_to.id}",
-            {
-                "type": "notification",
-                "message": f"New bonus request assigned to you by {self.request.user.username}",
-                "bonus_id": bonus_request.id,
-                "notification_type": "NEW_REQUEST"
-            }
-        )
+     
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -68,52 +57,8 @@ class BonusRequestViewSet(viewsets.ModelViewSet):
 
             bonus_request.status = action_type
             bonus_request.save()
-            # Create notification message first
-            notification_message = f"Your bonus request has been {action_type.lower()}"
+      
 
-            # Create notification object
-            notification = Notification.objects.create(
-            user=bonus_request.created_by,
-            message=notification_message,
-            bonus_request=bonus_request
-        )
-
-            # Send notification
-            channel_layer = get_channel_layer()
-            # notification_message = f"Your bonus request has been {action_type.lower()}"
-
-            async_to_sync(channel_layer.group_send)(
-                f"user_{bonus_request.created_by.id}",
-                {
-                    "type": "notification",
-                    "message": notification_message,
-                    "bonus_request_id": bonus_request.id,
-                    "notification_id": notification.id,
-                    "created_at": notification.created_at.isoformat()
-                }
-            )
-
-            # Notify assigned user if different from creator
-                # Notify assigned user if different from creator
-            if bonus_request.assigned_to.id != bonus_request.created_by.id:
-                assigned_notification = Notification.objects.create(
-                    user=bonus_request.assigned_to,
-                    message=f"Bonus request from {bonus_request.created_by.username} has been {action_type.lower()}",
-                    bonus_request=bonus_request
-                )
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{bonus_request.assigned_to.id}",
-                    {
-                        "type": "notification",
-                        "message": assigned_notification.message,
-                        "bonus_id": bonus_request.id,
-                        "notification_id": assigned_notification.id,
-                        "created_at": assigned_notification.created_at.isoformat()
-                    }
-                )
-
-            # Create notification in database
-           
             return Response({
                 'status': action_type.lower(),
                 'bonus_id': bonus_request.id,

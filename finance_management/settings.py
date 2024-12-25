@@ -44,8 +44,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'corsheaders',
-    'channels',
-    'channels_redis',
+    
 
     
 ]
@@ -106,16 +105,7 @@ TEMPLATES = [
         },
     },
 ]
-ASGI_APPLICATION = 'finance_management.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(os.environ.get('REDIS_HOST', 'localhost'), 6379)],
-        },
-    },
-}
-WSGI_APPLICATION = 'finance_management.wsgi.application'
+
 
 
 # Database
@@ -141,7 +131,6 @@ REST_FRAMEWORK = {
     )
 }
 AUTH_USER_MODEL = 'finance.User'
-
 from datetime import timedelta
 
 SIMPLE_JWT = {
@@ -182,22 +171,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 STATIC_URL = 'static/'
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dizb3j2hj',
-    'API_KEY': '789569728942547',
-    'API_SECRET': 'DcNIyW31ww2dNydIpVqCQ36_59M',
-}
-cloudinary.config(
-    cloud_name='dizb3j2hj',
-    api_key='789569728942547',
-    api_secret='DcNIyW31ww2dNydIpVqCQ36_59M'
-)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

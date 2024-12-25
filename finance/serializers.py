@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from .models import User, BonusRequest
+from decimal import Decimal
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -20,7 +21,13 @@ class UserSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 class BonusRequestSerializer(serializers.ModelSerializer):
-    class Meta:
+      amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01')
+    )
+      
+      class Meta:
         model = BonusRequest
         fields = ['id', 'title', 'reason', 'amount', 'status', 'created_by', 
                  'assigned_to', 'created_at', 'updated_at', 'attachment']
